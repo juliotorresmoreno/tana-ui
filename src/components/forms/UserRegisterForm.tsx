@@ -14,6 +14,9 @@ import {
   PasswordConfirmationError,
   PasswordError,
 } from "@/common/errors";
+import { useSignUp } from "@/services/auth";
+import { SessionContext } from "@/contexts/session";
+import { redirect, useRouter } from "next/navigation";
 
 const nameError = new NameError();
 const lastNameError = new LastNameError();
@@ -52,13 +55,15 @@ export function UserRegisterForm({
   className,
   ...props
 }: UserRegisterFormProps) {
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
-
+  const sessionContext = React.useContext(SessionContext);
+  const signUp = useSignUp();
   const nameInput = useInput("");
   const lastNameInput = useInput("");
   const emailInput = useInput("");
   const passwordInput = useInput("");
   const passwordConfirmInput = useInput("");
+
+  const router = useRouter();
 
   const errors = React.useMemo(
     () => ({
@@ -70,6 +75,12 @@ export function UserRegisterForm({
     []
   );
 
+  React.useEffect(() => {
+    if (sessionContext.session) {
+      router.push("/");
+    }
+  });
+
   const clearErrors = () => {
     nameInput.setError(null);
     lastNameInput.setError(null);
@@ -80,7 +91,6 @@ export function UserRegisterForm({
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault();
-    setIsLoading(true);
 
     clearErrors();
 
@@ -99,7 +109,28 @@ export function UserRegisterForm({
 
     if (result.error) errors[result.error.name](result.error);
 
-    setIsLoading(false);
+    signUp
+      .fetch(data)
+      .then(sessionContext.setSession)
+      .then(() => router.push("/"))
+      .catch((err) => {
+        switch (err.field_name) {
+          case "name":
+            nameInput.setError(new Error(err.message));
+            break;
+          case "last_name":
+            lastNameInput.setError(new Error(err.message));
+            break;
+          case "email":
+            emailInput.setError(new Error(err.message));
+            break;
+          case "password":
+            passwordInput.setError(new Error(err.message));
+            break;
+          default:
+            passwordConfirmInput.setError(new Error(err.message));
+        }
+      });
   }
 
   return (
@@ -119,7 +150,7 @@ export function UserRegisterForm({
               autoCapitalize="words"
               autoComplete="name"
               autoCorrect="off"
-              disabled={isLoading}
+              disabled={signUp.isLoading}
             />
           </div>
           {RenderError(nameInput.error)}
@@ -137,7 +168,7 @@ export function UserRegisterForm({
               autoCapitalize="words"
               autoComplete="family-name"
               autoCorrect="off"
-              disabled={isLoading}
+              disabled={signUp.isLoading}
             />
           </div>
           {RenderError(lastNameInput.error)}
@@ -155,7 +186,7 @@ export function UserRegisterForm({
               autoCapitalize="none"
               autoComplete="email"
               autoCorrect="off"
-              disabled={isLoading}
+              disabled={signUp.isLoading}
             />
           </div>
           {RenderError(emailInput.error)}
@@ -171,7 +202,7 @@ export function UserRegisterForm({
               placeholder="Enter your password"
               type="password"
               autoComplete="new-password"
-              disabled={isLoading}
+              disabled={signUp.isLoading}
             />
           </div>
           {RenderError(passwordInput.error)}
@@ -187,13 +218,13 @@ export function UserRegisterForm({
               placeholder="Confirm your password"
               type="password"
               autoComplete="new-password"
-              disabled={isLoading}
+              disabled={signUp.isLoading}
             />
           </div>
           {RenderError(passwordConfirmInput.error)}
 
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <Icons.spinner />}
+          <Button type="submit" disabled={signUp.isLoading}>
+            {signUp.isLoading && <Icons.spinner />}
             Sign Up with Email
           </Button>
         </div>

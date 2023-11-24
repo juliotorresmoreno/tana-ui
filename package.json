@@ -26,7 +26,8 @@
     "react-dom": "^18",
     "react-mentions": "^4.4.10",
     "tailwind-merge": "^2.0.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "yaml-loader": "^0.8.0"
   },
   "devDependencies": {
     "@types/node": "^20",

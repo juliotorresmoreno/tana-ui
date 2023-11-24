@@ -36,11 +36,9 @@ export class PasswordConfirmationError extends Error {
 }
 
 export class FetchError extends Error {
-  status: number;
-
-  constructor(message: string, status: number) {
-    super(message);
+  constructor(err: Object) {
+    super();
+    Object.assign(this, err);
     this.name = "FetchError";
-    this.status = status;
   }
 }

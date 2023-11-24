@@ -67,6 +67,8 @@ export function MentionsInput({
             evt.preventDefault();
             onArrowDown();
           }
+          
+          if (props.onKeyDown) props.onKeyDown(evt);
         }}
         onKeyUp={(evt) => {
           if (evt.key === "@") {

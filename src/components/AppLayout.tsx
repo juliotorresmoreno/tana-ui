@@ -1,17 +1,14 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { AppNavbar } from "./AppNavbar";
 import { SessionContext } from "@/contexts/session";
-import { redirect } from "next/navigation";
 
 interface AppLayoutProps extends React.PropsWithChildren {
   connections: React.ReactNode;
 }
 
 export function AppLayout(props: AppLayoutProps) {
-  const sessionContext = useContext(SessionContext);
-  if (!sessionContext.session) {
-    redirect("/auth/sign-in");
-  }
+  const { isLoading } = useContext(SessionContext);
+  if (isLoading) return null;
   return (
     <div className="w-full flex flex-col">
       <header>

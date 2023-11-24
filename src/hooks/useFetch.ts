@@ -1,34 +1,53 @@
 import { FetchError } from "@/common/errors";
 import { useState } from "react";
 
-interface FetchHookProps {
+interface FetchProps {
   url: string;
   options?: RequestInit;
 }
 
-interface FetchHookResult<T> {
+interface FetchHookResult<T = any, B = Object | FormData> {
   isLoading: boolean;
-  fetchData: () => Promise<T>;
+  fetch: (body?: B) => Promise<T>;
 }
 
-export const useFetch = <T>({
-  url,
-  options,
-}: FetchHookProps): FetchHookResult<T> => {
+export const useFetch = <T = any, B = Object | FormData>(
+  props: FetchProps
+): FetchHookResult<T, B> => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const fetchData = async (): Promise<T> => {
+  const fetchData = async (body?: B): Promise<T> => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(url, options);
+      const opts = { ...props.options };
+      if (body) {
+        if (body instanceof FormData) {
+          opts.body = body;
+        } else {
+          opts.body = JSON.stringify(body);
+          opts.headers = {
+            ...opts.headers,
+            "Content-Type": "application/json",
+          };
+        }
+      }
+
+      const response = await fetch(props.url, opts);
+      const contentType = response.headers.get("content-type") ?? "";
 
       if (!response.ok) {
-        throw new FetchError(
-          `HTTP error! Status: ${response.status}`,
-          response.status
-        );
+        if (contentType.indexOf("application/json") === -1)
+          throw new FetchError({
+            message: `HTTP error! Status: ${response.status}`,
+            statusCode: 400,
+          });
+
+        throw new FetchError(await response.json());
       }
+
+      // @ts-ignore
+      if (contentType.indexOf("application/json") === -1) return;
 
       return response.json();
     } finally {
@@ -36,5 +55,5 @@ export const useFetch = <T>({
     }
   };
 
-  return { isLoading, fetchData };
+  return { isLoading, fetch: fetchData };
 };

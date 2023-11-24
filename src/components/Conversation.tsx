@@ -1,16 +1,35 @@
 "use client";
 
 import React, { useContext, useState } from "react";
-import { Button } from "flowbite-react";
-import { ConversationContext } from "@/contexts/conversation";
 import { MentionsInput } from "./MentionsInput";
+import { ConversationContext } from "@/contexts/conversation";
+import { WebSocketContext } from "@/contexts/websocket";
+import { Button } from "flowbite-react";
 import { BsSend } from "react-icons/bs";
 
 interface ConversationProps {}
 
 export function Conversation(props: ConversationProps) {
+  const ws = useContext(WebSocketContext);
   const [message, setMessage] = useState("");
   const conversationContext = useContext(ConversationContext);
+
+  const sendMessage = () => {
+    if (!ws?.socket) return;
+
+    const data = {
+      event: "message",
+      data: message,
+    };
+
+    ws.socket.send(JSON.stringify(data));
+    setMessage("");
+  };
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      sendMessage();
+    }
+  };
   return (
     <div className="flex flex-1 flex-col">
       <div
@@ -29,6 +48,7 @@ export function Conversation(props: ConversationProps) {
       </div>
       <div className="flex flex-row gap-2">
         <MentionsInput
+          onKeyDown={handleKeyPress}
           disabled={!conversationContext.current}
           value={message}
           onChange={(evt) => setMessage(evt.target.value)}
@@ -38,7 +58,10 @@ export function Conversation(props: ConversationProps) {
           onArrowUp={() => alert("up")}
           onArrowDown={() => alert("down")}
         />
-        <Button disabled={!conversationContext.current}>
+        <Button
+          onClick={() => sendMessage()}
+          disabled={!conversationContext.current}
+        >
           <BsSend />
         </Button>
       </div>

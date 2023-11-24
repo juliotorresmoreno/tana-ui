@@ -1,5 +1,5 @@
 import { Connection } from "@/types/common";
-import React from "react";
+import React, { PropsWithChildren, useState } from "react";
 
 type ConversationContext = {
   current: Connection | null;
@@ -13,3 +13,15 @@ const initialValue: ConversationContext = {
 
 export const ConversationContext =
   React.createContext<ConversationContext>(initialValue);
+
+export const ConversationContextProvider = ({
+  children,
+}: PropsWithChildren) => {
+  const [current, setCurrent] = useState(null);
+
+  return (
+    <ConversationContext.Provider value={{ current, setCurrent }}>
+      {children}
+    </ConversationContext.Provider>
+  );
+};

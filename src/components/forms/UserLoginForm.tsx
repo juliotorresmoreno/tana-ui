@@ -2,11 +2,24 @@
 
 import * as React from "react";
 
+import Joi from "joi";
 import { cn } from "@/lib/utils";
 import { Button, Label } from "flowbite-react";
 import { Input } from "../Input";
 import { useInput } from "@/hooks/useInput";
 import { Icons } from "../Icons";
+import { useSignIn } from "@/services/auth";
+import { EmailError, PasswordError } from "@/common/errors";
+import { SessionContext } from "@/contexts/session";
+import { useRouter } from "next/navigation";
+
+const emailError = new EmailError();
+const passwordError = new PasswordError();
+
+export const signInSchema = Joi.object({
+  email: Joi.string().required().error(emailError),
+  password: Joi.string().required().error(passwordError),
+});
 
 const RenderError = (error: Error | null) =>
   error ? (
@@ -21,18 +34,64 @@ const RenderError = (error: Error | null) =>
 interface UserLoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
-
+  const sessionContext = React.useContext(SessionContext);
+  const signIn = useSignIn();
   const emailInput = useInput("");
   const passwordInput = useInput("");
 
+  const router = useRouter();
+
+  const errors = React.useMemo(
+    () => ({
+      [emailError.name]: emailInput.setError,
+      [passwordError.name]: passwordInput.setError,
+    }),
+    []
+  );
+
+  React.useEffect(() => {
+    if (sessionContext.session) {
+      router.push("/");
+    }
+  });
+
+  const clearErrors = () => {
+    emailInput.setError(null);
+    passwordInput.setError(null);
+  };
+
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault();
-    setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 3000);
+    clearErrors();
+
+    const data = {
+      email: emailInput.value,
+      password: passwordInput.value,
+    };
+
+    const result = signInSchema.validate(data);
+
+    if (result.error) errors[result.error.name](result.error);
+    try {
+      const session = await signIn.fetch(data);
+      sessionContext.setSession(session);
+
+      window.requestAnimationFrame(() => {
+        router.push("/");
+      });
+    } catch (err: any) {
+      switch (err.field_name) {
+        case "email":
+          emailInput.setError(new Error(err.message));
+          break;
+        case "password":
+          passwordInput.setError(new Error(err.message));
+          break;
+        default:
+          passwordInput.setError(new Error(err.message));
+      }
+    }
   }
 
   return (
@@ -52,7 +111,7 @@ export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
               autoCapitalize="none"
               autoComplete="email"
               autoCorrect="off"
-              disabled={isLoading}
+              disabled={signIn.isLoading}
             />
           </div>
           {RenderError(emailInput.error)}
@@ -68,14 +127,14 @@ export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
               placeholder="Enter your password"
               type="password"
               autoComplete="new-password"
-              disabled={isLoading}
+              disabled={signIn.isLoading}
             />
           </div>
           {RenderError(passwordInput.error)}
 
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <Icons.spinner />}
-            Sign Up with Email
+          <Button type="submit" disabled={signIn.isLoading}>
+            {signIn.isLoading && <Icons.spinner />}
+            Sign In with Email
           </Button>
         </div>
       </form>
