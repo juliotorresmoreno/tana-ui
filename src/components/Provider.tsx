@@ -4,12 +4,10 @@ import { ConnectionsContextProvider } from "@/contexts/connections";
 import { ConversationContextProvider } from "@/contexts/conversation";
 import { MenuContextProvider } from "@/contexts/menu";
 import { SessionContext } from "@/contexts/session";
-import { WebSocketProvider } from "@/contexts/websocket";
 import { useSession } from "@/hooks/useSession";
 import { PropsWithChildren, ReactNode } from "react";
 
 const providers = [
-  WebSocketProvider,
   ConnectionsContextProvider,
   ConversationContextProvider,
   MenuContextProvider,

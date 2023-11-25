@@ -11,3 +11,8 @@ export interface Session {
   token: string;
   user: User;
 }
+
+export interface Message {
+  answer: string;
+  response: string;
+}
