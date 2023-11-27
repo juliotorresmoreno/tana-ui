@@ -5,12 +5,13 @@ export async function getConversation(id: string): Promise<any> {
   return [];
 }
 
-export async function sendMessage(data: any) {
+export async function sendMessage(token: string, data: any) {
   const config = getConfig();
 
   const response = await fetch(`${config.apiUrl}/mmlu/answer`, {
     method: "POST",
     headers: {
+      Authorization: "Bearer " + token,
       "content-type": "application/json",
     },
     body: JSON.stringify(data),
