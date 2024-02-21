@@ -26,9 +26,9 @@ export function useSignIn() {
 
 let sessionPromise: Promise<Session> | null = null;
 
-export async function getSession(token: string): Promise<Session> {
+export async function getSession(): Promise<Session> {
   if (!sessionPromise) {
-    sessionPromise = getSessionInternal(token);
+    sessionPromise = getSessionInternal();
   }
 
   try {
@@ -38,14 +38,11 @@ export async function getSession(token: string): Promise<Session> {
   }
 }
 
-async function getSessionInternal(token: string): Promise<Session> {
+async function getSessionInternal(): Promise<Session> {
   const config = getConfig();
 
   const response = await fetch(`${config.apiUrl}/auth/session`, {
     method: "GET",
-    headers: {
-      Authorization: "Bearer " + token,
-    },
   });
   const contentType = response.headers.get("content-type") ?? "";
 

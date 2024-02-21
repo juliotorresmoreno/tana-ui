@@ -7,12 +7,10 @@ export interface User {
   rol: string;
 }
 
-export interface Session {
-  token: string;
-  user: User;
-}
+export interface Session extends User {}
 
 export interface Message {
-  answer: string;
-  response: string;
+  id: string;
+  content: string;
+  user: string;
 }

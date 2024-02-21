@@ -8,32 +8,41 @@ import { BsSend } from "react-icons/bs";
 import { SessionContext } from "@/contexts/session";
 import * as conversation from "@/services/conversation";
 import { Utf8ArrayToStr } from "@/lib/utf8";
-import { User } from "@/types/models";
 import "./styles.css";
 
 interface ChatProps {
-  system: string;
-  user: User;
-  answer: string;
-  response: string;
+  id: string;
+  content: string;
+  user: string;
 }
 
-const Chat = ({ system, user, answer, response }: ChatProps) => {
+const Chat = ({ id, content, user }: ChatProps) => {
   return (
-    <div key={answer} className="flex flex-col gap-2 mt-2">
-      <div className="flex flex-col bg-green-100 gap-2 p-2">
-        <div className="text-lg flex-col font-bold wh-normal m-0 p-0">
-          {user.name}:
+    <div key={id} className="flex flex-col gap-2 mt-2">
+      {user === "human" && (
+        <div className="flex flex-col bg-green-100 gap-2 p-2">
+          <div className="text-lg flex-col font-bold wh-normal m-0 p-0">
+            {user}:
+          </div>
+          <pre className="flex-1">{content}</pre>
         </div>
-        <pre className="flex-1">{answer}</pre>
-      </div>
-
-      <div className="flex flex-col bg-blue-100 gap-1 p-2">
-        <div className="text-lg flex-col font-bold wh-normal m-0 p-0">
-          {system}:
+      )}
+      {user === "ai" && (
+        <div className="flex flex-col bg-blue-100 gap-1 p-2">
+          <div className="text-lg flex-col font-bold wh-normal m-0 p-0">
+            {user}:
+          </div>
+          <pre className="flex-1 comments">{content}</pre>
         </div>
-        <pre className="flex-1 comments">{response}</pre>
-      </div>
+      )}
+      {user === "system" && (
+        <div className="flex flex-col bg-purple-200 gap-1 p-2">
+          <div className="text-lg flex-col font-bold wh-normal m-0 p-0">
+            {user}:
+          </div>
+          <pre className="flex-1 comments">{content}</pre>
+        </div>
+      )}
     </div>
   );
 };
@@ -52,6 +61,17 @@ export function Conversation(props: ConversationProps) {
   let answer: string = "";
   let chunks: string = "";
 
+  useEffect(() => {
+    async function getData() {
+      if (!current || current?.id === 0) return;
+      const data = await (
+        await conversation.getConversation(current.id)
+      ).json();
+      setHistory(data);
+    }
+    getData();
+  }, [session, current?.id]);
+
   const sendMessage = async () => {
     try {
       if (!current) return;
@@ -61,7 +81,7 @@ export function Conversation(props: ConversationProps) {
       setMessage("");
 
       const data = {
-        id: current.id.toString(),
+        bot_id: current.id,
         prompt: message,
       };
 
@@ -70,11 +90,11 @@ export function Conversation(props: ConversationProps) {
         windowRef.current?.classList.remove("hidden");
         windowRef.current.style.width = windowRef.current.clientWidth + "px";
       }
+      if (conversationRef.current)
+        conversationRef.current.scrollTop =
+          conversationRef.current.scrollHeight;
 
-      const response = await conversation.sendMessage(
-        session?.token as string,
-        data
-      );
+      const response = await conversation.sendMessage(data);
       const reader = (response.body as ReadableStream<Uint8Array>).getReader();
       while (true) {
         const { done, value } = await reader.read();
@@ -85,6 +105,7 @@ export function Conversation(props: ConversationProps) {
         const data = Utf8ArrayToStr(value);
 
         chunks = chunks + data;
+        console.log(responseRef.current, chunks);
         if (responseRef.current) {
           responseRef.current.innerHTML = chunks.trim();
         }
@@ -100,8 +121,10 @@ export function Conversation(props: ConversationProps) {
 
       setHistory((history) => [
         ...history,
-        { answer, response: chunks.trim() },
+        { id: (Date.now() + 2).toString(), content: answer, user: "human" },
+        { id: (Date.now() + 5).toString(), content: chunks.trim(), user: "ai" },
       ]);
+
       chunks = "";
       answer = "";
     } finally {
@@ -130,33 +153,18 @@ export function Conversation(props: ConversationProps) {
         className="flex flex-1 flex-col overflow-x-hidden"
       >
         <div>
-          <dl className="bg-slate-200 p-2">
-            <dt className="text-lg font-bold">
-              {current?.name} {current?.surname}
-            </dt>
-            <dd>{current?.description}</dd>
-          </dl>
-        </div>
-        <div>
-          {history.map((item) =>
-            Chat({
-              user: session?.user as User,
-              system: current?.name ?? "",
-              answer: item.answer,
-              response: item.response,
-            })
-          )}
+          {history.map((item) => Chat(item))}
 
           <div ref={windowRef} className={"flex flex-col gap-2 mt-2 hidden"}>
             <div className="flex flex-col bg-green-100 gap-2 p-2">
-              <span className="text-lg font-bold">{session?.user.name}:</span>
+              <span className="text-lg font-bold">human:</span>
               <pre className="flex-1" ref={answerRef}>
                 {answer}
               </pre>
             </div>
 
             <div className="flex flex-col bg-blue-100 gap-1 p-2">
-              <span className="text-lg font-bold">{current?.name}:</span>
+              <span className="text-lg font-bold">ai:</span>
               <pre className="flex-1 comments" ref={responseRef}></pre>
             </div>
           </div>

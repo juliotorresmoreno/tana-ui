@@ -1,9 +1,10 @@
 "use client";
 
-import { Navbar } from "flowbite-react";
+import { Button, Navbar } from "flowbite-react";
 import { useContext } from "react";
 import { MenuContext } from "@/contexts/menu";
 import { ConversationContext } from "@/contexts/conversation";
+import Link from "next/link";
 
 export function AppNavbar() {
   const menuContext = useContext(MenuContext);
@@ -19,16 +20,25 @@ export function AppNavbar() {
         </Navbar.Brand>
         <Navbar.Toggle />
         <Navbar.Collapse className="bg-white">
-          <Navbar.Link as="button" disabled={!conversationContext.current}>
+          <Navbar.Link
+            as={Link}
+            href="/call"
+            disabled={!conversationContext.current}
+          >
             Call
           </Navbar.Link>
-          <Navbar.Link as="button" disabled={!conversationContext.current}>
+          <Navbar.Link
+            as={Link}
+            href="/videocall"
+            disabled={!conversationContext.current}
+          >
             VideoCall
           </Navbar.Link>
-          <Navbar.Link as="button" disabled={!conversationContext.current}>
-            Attach
-          </Navbar.Link>
-          <Navbar.Link as="button" disabled={!conversationContext.current}>
+          <Navbar.Link
+            as={Link}
+            href="/documents"
+            disabled={!conversationContext.current}
+          >
             Documents
           </Navbar.Link>
         </Navbar.Collapse>

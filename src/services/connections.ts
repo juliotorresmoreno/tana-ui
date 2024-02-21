@@ -1,14 +1,13 @@
 import { FetchError } from "@/common/errors";
 import { getConfig } from "@/config";
 
-export async function getConnections(token: string) {
+export async function getConnections() {
   const config = getConfig();
 
   const response = await fetch(`${config.apiUrl}/connections`, {
     method: "GET",
     headers: {
       "content-type": "application/json",
-      Authorization: "Bearer " + token,
     },
   });
 
