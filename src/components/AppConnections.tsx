@@ -35,7 +35,7 @@ export function AppConnections(props: AppConnectionsProps) {
         <ul
           style={{ maxHeight: "calc(100vh - 110px)" }}
           role="list"
-          className="w-full flex-1 border border-solid border-gray-200 divide-y divide-gray-200 dark:divide-gray-700 gap-2 flex flex-col overflow-x-auto"
+          className="w-full flex-1 border border-solid border-gray-200 divide-y divide-gray-200 gap-2 flex flex-col overflow-x-auto"
         >
           {connections
             .filter(
@@ -76,12 +76,12 @@ export function AppConnections(props: AppConnectionsProps) {
                     </div>
                     <div className="flex-1 min-w-0 ms-4">
                       <p
-                        className={`${active} text-sm text-gray-900 truncate dark:text-white`}
+                        className={`${active} text-sm text-gray-900 truncate`}
                       >
                         {item.name}
                       </p>
                       <p
-                        className={`${active} text-sm text-gray-900 truncate dark:text-white`}
+                        className={`${active} text-sm text-gray-900 truncate`}
                       >
                         {item.description}
                       </p>

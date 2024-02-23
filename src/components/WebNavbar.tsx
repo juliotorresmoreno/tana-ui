@@ -10,7 +10,7 @@ export function WebNavbar() {
         <Navbar.Brand className="cursor-pointer" as={Link} href="/">
           <img src="/favicon.ico" className="mr-3 h-6 sm:h-9" alt="" />
 
-          <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">
+          <span className="self-center whitespace-nowrap text-xl font-semibold">
             BuildHub
           </span>
         </Navbar.Brand>

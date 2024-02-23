@@ -3,14 +3,14 @@ import React from "react";
 
 type SessionContext = {
   session: Session | null;
-  setSession(session: Session): void;
+  setSession(session: Session | null): void;
   isLoading: boolean;
   setIsLoading: (state: boolean) => void;
 };
 
 const initialValue: SessionContext = {
   session: null,
-  setSession(session: Session) {},
+  setSession(session: Session | null) {},
   isLoading: false,
   setIsLoading: (state: boolean) => {},
 };

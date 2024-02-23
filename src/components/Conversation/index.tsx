@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { MentionsInput } from "@/components/MentionsInput";
 import { ConversationContext } from "@/contexts/conversation";
 import { Button } from "flowbite-react";
 import { BsSend } from "react-icons/bs";
@@ -11,8 +10,8 @@ import * as conversation from "@/services/conversation";
 import { Utf8ArrayToStr } from "@/lib/utf8";
 import { getConfig } from "@/config";
 import { Message } from "@/types/models";
-import "./styles.css";
 import { Input } from "../Input";
+import "./styles.css";
 
 interface ChatProps extends Message {}
 
@@ -79,6 +78,8 @@ export function Conversation(props: ConversationProps) {
       withCredentials: true,
     });
     function getRealtimeData(data: Message) {
+      if (data.connection_id !== current?.id) return;
+
       setHistory((history) => [...history, data]);
     }
     sse.onmessage = (e) => getRealtimeData(JSON.parse(e.data));
@@ -86,7 +87,12 @@ export function Conversation(props: ConversationProps) {
       sse.close();
     };
     return () => sse.close();
-  }, [apiUrl]);
+  }, [apiUrl, current?.id]);
+
+  useEffect(() => {
+    if (conversationRef.current)
+      conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
+  }, [history]);
 
   const sendMessage = async () => {
     try {
@@ -172,11 +178,6 @@ export function Conversation(props: ConversationProps) {
     input.click();
   };
 
-  useEffect(() => {
-    if (conversationRef.current)
-      conversationRef.current.scrollTop = conversationRef.current.scrollHeight;
-  }, [history]);
-
   return (
     <div className="flex flex-1 flex-col gap-2">
       <div
@@ -207,19 +208,21 @@ export function Conversation(props: ConversationProps) {
       </div>
       <div className="flex flex-row gap-2">
         <Button
+          className="rounded-none"
           onClick={() => handleAttachment()}
           disabled={!current || isLoading}
         >
           <CgAttachment />
         </Button>
         <Input
+          type="text"
           onKeyDown={handleKeyPress}
           disabled={!current || isLoading}
           value={message}
           onChange={(evt) => setMessage(evt.target.value)}
-          className="flex-1"
         />
         <Button
+          className="rounded-none"
           onClick={() => sendMessage()}
           disabled={!current || isLoading || !message}
         >

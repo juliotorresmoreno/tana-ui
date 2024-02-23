@@ -13,5 +13,6 @@ export interface Message {
   id: string;
   content: string;
   rol: string;
+  connection_id: number;
   created_at: string;
 }
