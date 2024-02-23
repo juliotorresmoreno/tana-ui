@@ -12,5 +12,6 @@ export interface Session extends User {}
 export interface Message {
   id: string;
   content: string;
-  user: string;
+  rol: string;
+  created_at: string;
 }
