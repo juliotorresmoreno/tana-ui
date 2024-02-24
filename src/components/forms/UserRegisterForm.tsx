@@ -16,7 +16,7 @@ import {
 } from "@/common/errors";
 import { useSignUp } from "@/services/auth";
 import { SessionContext } from "@/contexts/session";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const nameError = new NameError();
 const lastNameError = new LastNameError();

@@ -12,7 +12,9 @@ export async function getProfile() {
   });
 
   if (!response.ok || response.body === null) {
-    throw new FetchError("Unexpected error");
+    throw new FetchError({
+      cause: await response.json(),
+    });
   }
 
   return response;
@@ -39,7 +41,9 @@ export async function updateProfile(data: UpdateProfileData) {
   });
 
   if (!response.ok || response.body === null) {
-    throw new FetchError("Unexpected error");
+    throw new FetchError({
+      cause: await response.json(),
+    });
   }
 
   return response;

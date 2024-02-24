@@ -1,3 +1,5 @@
+import { Err } from "joi";
+
 export class NameError extends Error {
   constructor() {
     super("Please provide a valid name.");
@@ -36,9 +38,8 @@ export class PasswordConfirmationError extends Error {
 }
 
 export class FetchError extends Error {
-  constructor(err: Object) {
-    super();
-    Object.assign(this, err);
+  constructor(opts: ErrorOptions = {}) {
+    super("FetchError", opts);
     this.name = "FetchError";
   }
 }
