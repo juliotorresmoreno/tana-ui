@@ -1,6 +1,5 @@
 "use client";
 
-import { AppConnections } from "@/components/AppConnections";
 import { AppLayout } from "@/components/AppLayout";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
@@ -11,7 +10,7 @@ export default function Page() {
   return (
     <Suspense fallback={<Loading />}>
       <main className="flex">
-        <AppLayout connections={<AppConnections />}>
+        <AppLayout connections={null}>
           <div className="flex flex-1 flex-col gap-2">
             <section className="bg-gray-50 p-3 sm:p-5 flex flex-1">
               <div className="mx-auto max-w-screen-xl px-4 lg:px-12 flex flex-1">
@@ -49,7 +48,7 @@ export default function Page() {
                       </form>
                     </div>
                     <div className="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
-                      <Button type="button" className="rounded-none w-[100px]">
+                      <Button type="button" className="rounded-none w-[150px]">
                         <svg
                           className="h-3.5 w-3.5 mr-2"
                           fill="currentColor"
@@ -63,7 +62,7 @@ export default function Page() {
                             d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
                           />
                         </svg>
-                        Add
+                        Generate
                       </Button>
                     </div>
                   </div>
@@ -72,10 +71,10 @@ export default function Page() {
                       <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr className="flex">
                           <th scope="col" className="px-4 py-3 flex-1">
-                            Name
+                            Api Key
                           </th>
                           <th scope="col" className="px-4 py-3 w-[200px]">
-                            Active
+                            Last used
                           </th>
                           <th scope="col" className="px-4 py-3 w-[200px]">
                             Created At

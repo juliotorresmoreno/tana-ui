@@ -1,6 +1,5 @@
 "use client";
 
-import { AppConnections } from "@/components/AppConnections";
 import { AppLayout } from "@/components/AppLayout";
 import { Loading } from "@/components/Loading";
 import { ProfileForm } from "@/components/forms/ProfileForm";
@@ -10,9 +9,9 @@ export default function Page() {
   return (
     <Suspense fallback={<Loading />}>
       <main className="flex">
-        <AppLayout connections={<AppConnections />}>
+        <AppLayout connections={null}>
           <div className="flex flex-1 flex-col gap-2">
-            <section className="bg-white p-3">
+            <section className="bg-gray-50 p-3 sm:p-5 flex flex-1">
               <ProfileForm />
             </section>
           </div>

@@ -18,12 +18,21 @@ export function AppLayout(props: AppLayoutProps) {
       <div className="flex flex-1 gap-4 p-2">
         <div className="flex">{props.connections}</div>
 
-        <div
-          style={{ maxHeight: "calc(100vh - 60px)" }}
-          className="flex flex-1 border border-solid border-gray-200 p-2"
-        >
-          {props.children}
-        </div>
+        {props.connections ? (
+          <div
+            style={{ maxHeight: "calc(100vh - 60px)" }}
+            className="flex flex-1 border border-solid border-gray-200 p-2"
+          >
+            {props.children}
+          </div>
+        ) : (
+          <div
+            style={{ maxHeight: "calc(100vh - 60px)" }}
+            className="flex flex-1 p-2"
+          >
+            {props.children}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,5 @@
 "use client";
 
-import { AppConnections } from "@/components/AppConnections";
 import { AppLayout } from "@/components/AppLayout";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
@@ -11,7 +10,7 @@ export default function Page() {
   return (
     <Suspense fallback={<Loading />}>
       <main className="flex">
-        <AppLayout connections={<AppConnections />}>
+        <AppLayout connections={null}>
           <div className="flex flex-1 flex-col gap-2">
             <section className="bg-gray-50 p-3 sm:p-5 flex flex-1">
               <div className="mx-auto max-w-screen-xl px-4 lg:px-12 flex flex-1">
@@ -49,7 +48,7 @@ export default function Page() {
                       </form>
                     </div>
                     <div className="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
-                      <Button type="button" className="rounded-none w-[100px]">
+                      <Button type="button" className="rounded-none w-[150px]">
                         <svg
                           className="h-3.5 w-3.5 mr-2"
                           fill="currentColor"
