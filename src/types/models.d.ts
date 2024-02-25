@@ -33,3 +33,13 @@ export interface Profile {
   updated_at: string; // ya que tienen un formato de fecha específico y se pueden manejar como strings.
   deleted_at: string;
 }
+
+interface Credential {
+  id: number;
+  api_key: string;
+  api_secret: string;
+  creation_at: string;
+  deleted_at: string | null;
+  last_used: string | null;
+  updated_at: string;
+}
