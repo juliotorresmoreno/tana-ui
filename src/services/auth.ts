@@ -1,27 +1,70 @@
 import { FetchError } from "@/common/errors";
 import { getConfig } from "@/config";
-import { useFetch } from "@/hooks/useFetch";
 import { Session } from "@/types/models";
 
-export function useSignUp() {
-  const config = getConfig();
 
-  return useFetch<Session>({
-    url: `${config.apiUrl}/auth/sign-up`,
-    options: {
-      method: "POST",
-    },
-  });
+type signUpPayload = {
+  name: string
+  last_name: string
+  email: string,
+  password: string,
 }
-export function useSignIn() {
-  const config = getConfig();
 
-  return useFetch<Session>({
-    url: `${config.apiUrl}/auth/sign-in`,
-    options: {
-      method: "POST",
+export async function signUp(payload: signUpPayload): Promise<Session> {
+  const config = getConfig();
+  const response = await fetch(`${config.apiUrl}/auth/sign-up`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify(payload)
   });
+
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (!response.ok) {
+    if (contentType.indexOf("application/json") === -1)
+      throw new FetchError({
+        cause: `HTTP error! Status: ${response.status}`,
+      });
+
+    throw new FetchError({
+      cause: await response.json()
+    });
+  }
+
+  return response.json();
+}
+
+type signInPayload = {
+  email: string,
+  password: string,
+}
+
+export async function signIn(payload: signInPayload): Promise<Session> {
+  const config = getConfig();
+  const response = await fetch(`${config.apiUrl}/auth/sign-in`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (!response.ok) {
+    if (contentType.indexOf("application/json") === -1)
+      throw new FetchError({
+        cause: `HTTP error! Status: ${response.status}`,
+      });
+
+    throw new FetchError({
+      cause: await response.json()
+    });
+  }
+
+  return response.json();
 }
 
 let sessionPromise: Promise<Session> | null = null;
@@ -49,11 +92,12 @@ async function getSessionInternal(): Promise<Session> {
   if (!response.ok) {
     if (contentType.indexOf("application/json") === -1)
       throw new FetchError({
-        message: `HTTP error! Status: ${response.status}`,
-        statusCode: 400,
+        cause: `HTTP error! Status: ${response.status}`,
       });
 
-    throw new FetchError(await response.json());
+    throw new FetchError({
+      cause: await response.json()
+    });
   }
 
   return response.json();

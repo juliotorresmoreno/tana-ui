@@ -39,8 +39,7 @@ export const useFetch = <T = any, B = Object | FormData>(
       if (!response.ok) {
         if (contentType.indexOf("application/json") === -1)
           throw new FetchError({
-            message: `HTTP error! Status: ${response.status}`,
-            statusCode: 400,
+            cause: `HTTP error! Status: ${response.status}`,
           });
 
         throw new FetchError(await response.json());

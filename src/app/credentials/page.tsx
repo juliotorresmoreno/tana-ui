@@ -1,7 +1,6 @@
 "use client";
 
 import { AppLayout } from "@/components/AppLayout";
-import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { getCredentials } from "@/services/credentials";
 import { Credential } from "@/types/models";

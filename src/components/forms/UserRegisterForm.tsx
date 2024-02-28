@@ -9,12 +9,13 @@ import { Icons } from "@/components/Icons";
 import Joi from "joi";
 import {
   EmailError,
+  FetchError,
   LastNameError,
   NameError,
   PasswordConfirmationError,
   PasswordError,
 } from "@/common/errors";
-import { useSignUp } from "@/services/auth";
+import { signUp } from "@/services/auth";
 import { SessionContext } from "@/contexts/session";
 import { useRouter } from "next/navigation";
 
@@ -49,14 +50,14 @@ const RenderError = (error: Error | null) =>
     </div>
   ) : null;
 
-interface UserRegisterFormProps extends React.HTMLAttributes<HTMLDivElement> {}
+interface UserRegisterFormProps extends React.HTMLAttributes<HTMLDivElement> { }
 
 export function UserRegisterForm({
   className,
   ...props
 }: UserRegisterFormProps) {
+  const [isLoading, setIsLoading] = React.useState(false)
   const sessionContext = React.useContext(SessionContext);
-  const signUp = useSignUp();
   const nameInput = useInput("");
   const lastNameInput = useInput("");
   const emailInput = useInput("");
@@ -105,32 +106,26 @@ export function UserRegisterForm({
       password: passwordInput.value,
     };
 
-    const result = signUpSchema.validate(data);
+    //const result = signUpSchema.validate(data);
+    //if (result.error) errors[result.error.name](result.error);
 
-    if (result.error) errors[result.error.name](result.error);
-
-    signUp
-      .fetch(data)
+    setIsLoading(true)
+    signUp(data)
       .then(sessionContext.setSession)
       .then(() => router.push("/"))
-      .catch((err) => {
-        switch (err.field_name) {
-          case "name":
-            nameInput.setError(new Error(err.message));
-            break;
-          case "last_name":
-            lastNameInput.setError(new Error(err.message));
-            break;
-          case "email":
-            emailInput.setError(new Error(err.message));
-            break;
-          case "password":
-            passwordInput.setError(new Error(err.message));
-            break;
-          default:
-            passwordConfirmInput.setError(new Error(err.message));
+      .catch((err: FetchError) => {
+        const cause = (err.cause || {} as any)
+        if (cause.message) {
+          passwordInput.setError(new Error(cause.message));
+          return
         }
-      });
+
+        if (cause.name) return nameInput.setError(new Error(cause.name));
+        if (cause.last_name) return lastNameInput.setError(new Error(cause.last_name));
+        if (cause.email) return emailInput.setError(new Error(cause.email));
+        if (cause.password) return passwordInput.setError(new Error(cause.password));
+      })
+      .finally(() => setIsLoading(false));
   }
 
   return (
@@ -150,7 +145,7 @@ export function UserRegisterForm({
               autoCapitalize="words"
               autoComplete="name"
               autoCorrect="off"
-              disabled={signUp.isLoading}
+              disabled={isLoading}
             />
           </div>
           {RenderError(nameInput.error)}
@@ -168,7 +163,7 @@ export function UserRegisterForm({
               autoCapitalize="words"
               autoComplete="family-name"
               autoCorrect="off"
-              disabled={signUp.isLoading}
+              disabled={isLoading}
             />
           </div>
           {RenderError(lastNameInput.error)}
@@ -186,7 +181,7 @@ export function UserRegisterForm({
               autoCapitalize="none"
               autoComplete="email"
               autoCorrect="off"
-              disabled={signUp.isLoading}
+              disabled={isLoading}
             />
           </div>
           {RenderError(emailInput.error)}
@@ -202,7 +197,7 @@ export function UserRegisterForm({
               placeholder="Enter your password"
               type="password"
               autoComplete="new-password"
-              disabled={signUp.isLoading}
+              disabled={isLoading}
             />
           </div>
           {RenderError(passwordInput.error)}
@@ -218,13 +213,13 @@ export function UserRegisterForm({
               placeholder="Confirm your password"
               type="password"
               autoComplete="new-password"
-              disabled={signUp.isLoading}
+              disabled={isLoading}
             />
           </div>
           {RenderError(passwordConfirmInput.error)}
 
-          <Button type="submit" disabled={signUp.isLoading}>
-            {signUp.isLoading && <Icons.spinner />}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && <Icons.spinner />}
             Sign Up with Email
           </Button>
         </div>

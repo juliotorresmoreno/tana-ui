@@ -8,7 +8,7 @@ import { Button, Label } from "flowbite-react";
 import { Input } from "../Input";
 import { useInput } from "@/hooks/useInput";
 import { Icons } from "../Icons";
-import { useSignIn } from "@/services/auth";
+import { signIn } from "@/services/auth";
 import { EmailError, PasswordError } from "@/common/errors";
 import { SessionContext } from "@/contexts/session";
 import { useRouter } from "next/navigation";
@@ -31,11 +31,11 @@ const RenderError = (error: Error | null) =>
     </div>
   ) : null;
 
-interface UserLoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
+interface UserLoginFormProps extends React.HTMLAttributes<HTMLDivElement> { }
 
 export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
+  const [isLoading, setIsLoading] = React.useState(false)
   const sessionContext = React.useContext(SessionContext);
-  const signIn = useSignIn();
   const emailInput = useInput("");
   const passwordInput = useInput("");
 
@@ -73,25 +73,26 @@ export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
     const result = signInSchema.validate(data);
 
     if (result.error) errors[result.error.name](result.error);
-    try {
-      const session = await signIn.fetch(data);
+
+    setIsLoading(true)
+    await signIn(data).then(session => {
       sessionContext.setSession(session);
 
       window.requestAnimationFrame(() => {
         router.push("/");
       });
-    } catch (err: any) {
-      switch (err.field_name) {
-        case "email":
-          emailInput.setError(new Error(err.message));
-          break;
-        case "password":
-          passwordInput.setError(new Error(err.message));
-          break;
-        default:
-          passwordInput.setError(new Error(err.message));
+    }).catch((err: any) => {
+      const cause = (err.cause || {} as any)
+      if (cause.message) {
+        passwordInput.setError(new Error(cause.message));
+        return
       }
-    }
+
+      if (cause.email) return emailInput.setError(new Error(cause.email));
+      if (cause.password) return passwordInput.setError(new Error(cause.password));
+    }).finally(() => {
+      setIsLoading(false)
+    });
   }
 
   return (
@@ -111,7 +112,7 @@ export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
               autoCapitalize="none"
               autoComplete="email"
               autoCorrect="off"
-              disabled={signIn.isLoading}
+              disabled={isLoading}
             />
           </div>
           {RenderError(emailInput.error)}
@@ -127,13 +128,13 @@ export function UserLoginForm({ className, ...props }: UserLoginFormProps) {
               placeholder="Enter your password"
               type="password"
               autoComplete="new-password"
-              disabled={signIn.isLoading}
+              disabled={isLoading}
             />
           </div>
           {RenderError(passwordInput.error)}
 
-          <Button type="submit" disabled={signIn.isLoading}>
-            {signIn.isLoading && <Icons.spinner />}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading && <Icons.spinner />}
             Sign In with Email
           </Button>
         </div>
