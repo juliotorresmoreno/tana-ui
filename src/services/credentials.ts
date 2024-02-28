@@ -36,7 +36,7 @@ export async function generateCredential() {
 export async function deleteCredential(id: number) {
   const config = getConfig();
 
-  const response = await fetch(`${config.apiUrl}/credentials/generate/${id}`, {
+  const response = await fetch(`${config.apiUrl}/credentials/${id}`, {
     method: "DELETE",
   });
 

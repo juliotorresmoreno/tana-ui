@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { getProfile, updateProfile } from "@/services/profile";
 import { Profile } from "@/types/models";
 import { useInput } from "@/hooks/useInput";
+import toast, { Toaster } from 'react-hot-toast';
 
 const RenderError = (error: Error | null) =>
   error ? (
@@ -49,16 +50,20 @@ export function ProfileForm() {
       position_name: positionName.value,
       url: url.value,
       description: description.value,
-    }).catch((errors) => {
-      const cause = errors.cause ?? {};
-      if (cause.name) name.setError(new Error(cause.name));
-      if (cause.last_name) lastName.setError(new Error(cause.last_name));
-      if (cause.business) business.setError(new Error(cause.business));
-      if (cause.position_name)
-        positionName.setError(new Error(cause.position_name));
-      if (cause.url) url.setError(new Error(cause.url));
-      if (cause.description) description.setError(new Error(cause.description));
-    });
+    }).then(async (response) => {
+      const data = await response.json();
+      toast(data.message);
+    })
+      .catch((errors) => {
+        const cause = errors.cause ?? {};
+        if (cause.name) name.setError(new Error(cause.name));
+        if (cause.last_name) lastName.setError(new Error(cause.last_name));
+        if (cause.business) business.setError(new Error(cause.business));
+        if (cause.position_name)
+          positionName.setError(new Error(cause.position_name));
+        if (cause.url) url.setError(new Error(cause.url));
+        if (cause.description) description.setError(new Error(cause.description));
+      });
   };
 
   const clearErrors = () => {
@@ -77,6 +82,9 @@ export function ProfileForm() {
           <div className="w-full">
             <h2 className="mb-4 text-xl font-bold text-gray-900">Profile</h2>
             <form onSubmit={handleSubmit}>
+
+              <Toaster />
+
               <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">
                 <div className="w-full">
                   <label className="block mb-2 text-sm font-medium text-gray-900">

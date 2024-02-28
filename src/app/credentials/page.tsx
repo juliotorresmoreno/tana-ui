@@ -2,26 +2,103 @@
 
 import { AppLayout } from "@/components/AppLayout";
 import { Loading } from "@/components/Loading";
-import { getCredentials } from "@/services/credentials";
+import {
+  deleteCredential,
+  generateCredential,
+  getCredentials,
+} from "@/services/credentials";
 import { Credential } from "@/types/models";
-import { Button } from "flowbite-react";
+import { Button, Modal } from "flowbite-react";
 import { Suspense, useEffect, useState } from "react";
 import { RiDeleteBin2Fill } from "react-icons/ri";
 import { SiCodereview } from "react-icons/si";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Page() {
+  const [openModal, setOpenModal] = useState<Credential | null>(null);
+  const [openModalForDelete, setOpenModalForDelete] =
+    useState<Credential | null>(null);
   const [credentials, setCredentials] = useState<Credential[]>([]);
-  useEffect(() => {
-    async function getData() {
-      const response = await getCredentials();
-      const data = await response.json();
+  async function getData() {
+    const response = await getCredentials();
+    const data = await response.json();
 
-      setCredentials(data);
-    }
+    setCredentials(data);
+  }
+
+  useEffect(() => {
     getData();
   }, []);
+
+  const handleGenerate = () => {
+    generateCredential().then(async (response) => {
+      const data = await response.json();
+      toast(data.message);
+
+      getData();
+    });
+  };
   return (
     <Suspense fallback={<Loading />}>
+      <Toaster />
+
+      <Modal show={openModal !== null} onClose={() => setOpenModal(null)}>
+        <Modal.Header>Credential</Modal.Header>
+        <Modal.Body>
+          <div className="flex flex-col gap-8">
+            <div className="w-full">
+              <label className="block mb-2 text-sm font-medium text-gray-900">
+                Api Key
+              </label>
+              <span>{openModal?.api_key}</span>
+            </div>
+
+            <div className="w-full">
+              <label className="block mb-2 text-sm font-medium text-gray-900">
+                Api Secrect
+              </label>
+              <span>{openModal?.api_secret}</span>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      <Modal
+        show={openModalForDelete !== null}
+        onClose={() => setOpenModalForDelete(null)}
+      >
+        <Modal.Header>Delete credential</Modal.Header>
+        <Modal.Body>
+          Do you really want to delete this credential?
+          <div className="w-full">
+            <label className="block mb-2 text-sm font-medium text-gray-900">
+              Api Key
+            </label>
+            <span>{openModalForDelete?.api_key}</span>
+          </div>
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button
+            onClick={() => {
+              deleteCredential(openModalForDelete?.id ?? 0).then(
+                async (response) => {
+                  const data = await response.json();
+                  toast(data.message);
+                  setOpenModalForDelete(null);
+                  getData();
+                }
+              );
+            }}
+          >
+            I accept
+          </Button>
+          <Button color="gray" onClick={() => setOpenModalForDelete(null)}>
+            Decline
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       <main className="flex">
         <AppLayout connections={null}>
           <div className="flex flex-1 flex-col gap-2">
@@ -34,7 +111,11 @@ export default function Page() {
                       <h2 className="font-bold">Credentials</h2>
                     </div>
                     <div className="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
-                      <Button type="button" className="rounded-none w-[150px]">
+                      <Button
+                        type="button"
+                        className="rounded-none w-[150px]"
+                        onClick={handleGenerate}
+                      >
                         <svg
                           className="h-3.5 w-3.5 mr-2"
                           fill="currentColor"
@@ -84,10 +165,18 @@ export default function Page() {
                             </td>
 
                             <td className="px-4 py-1 w-[60px] flex flex-row justify-end gap-2">
-                              <span className="text-primary-500 cursor-pointer">
+                              <span
+                                className="text-primary-500 cursor-pointer text-xl"
+                                onClick={() => setOpenModal(credential)}
+                              >
                                 <SiCodereview />
                               </span>
-                              <span className="text-red-700 cursor-pointer">
+                              <span
+                                className="text-red-700 cursor-pointer text-xl"
+                                onClick={() =>
+                                  setOpenModalForDelete(credential)
+                                }
+                              >
                                 <RiDeleteBin2Fill />
                               </span>
                             </td>
