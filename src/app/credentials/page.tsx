@@ -7,7 +7,7 @@ import {
   generateCredential,
   getCredentials,
 } from "@/services/credentials";
-import { Credential } from "@/types/models";
+import { Credential, Response } from "@/types/models";
 import { Button, Modal } from "flowbite-react";
 import { Suspense, useEffect, useState } from "react";
 import { RiDeleteBin2Fill } from "react-icons/ri";
@@ -32,12 +32,22 @@ export default function Page() {
 
   const handleGenerate = () => {
     generateCredential().then(async (response) => {
-      const data = await response.json();
+      const data: Response = await response.json();
       toast(data.message);
 
       getData();
     });
   };
+
+  const handleDelete = () => {
+    deleteCredential(openModalForDelete?.id ?? 0).then(async (response) => {
+      const data: Response = await response.json();
+      toast(data.message);
+      setOpenModalForDelete(null);
+      getData();
+    });
+  };
+
   return (
     <Suspense fallback={<Loading />}>
       <Toaster />
@@ -79,20 +89,7 @@ export default function Page() {
         </Modal.Body>
 
         <Modal.Footer>
-          <Button
-            onClick={() => {
-              deleteCredential(openModalForDelete?.id ?? 0).then(
-                async (response) => {
-                  const data = await response.json();
-                  toast(data.message);
-                  setOpenModalForDelete(null);
-                  getData();
-                }
-              );
-            }}
-          >
-            I accept
-          </Button>
+          <Button onClick={handleDelete}>I accept</Button>
           <Button color="gray" onClick={() => setOpenModalForDelete(null)}>
             Decline
           </Button>

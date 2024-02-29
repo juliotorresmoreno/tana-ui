@@ -8,7 +8,14 @@ export async function getCredentials() {
     method: "GET",
   });
 
-  if (!response.ok || response.body === null) {
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (!response.ok) {
+    if (contentType.indexOf("application/json") === -1)
+      throw new FetchError({
+        cause: { message: `HTTP error! Status: ${response.status}` },
+      });
+
     throw new FetchError({
       cause: await response.json(),
     });
@@ -24,7 +31,14 @@ export async function generateCredential() {
     method: "POST",
   });
 
-  if (!response.ok || response.body === null) {
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (!response.ok) {
+    if (contentType.indexOf("application/json") === -1)
+      throw new FetchError({
+        cause: { message: `HTTP error! Status: ${response.status}` },
+      });
+
     throw new FetchError({
       cause: await response.json(),
     });
@@ -40,7 +54,14 @@ export async function deleteCredential(id: number) {
     method: "DELETE",
   });
 
-  if (!response.ok || response.body === null) {
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (!response.ok) {
+    if (contentType.indexOf("application/json") === -1)
+      throw new FetchError({
+        cause: { message: `HTTP error! Status: ${response.status}` },
+      });
+
     throw new FetchError({
       cause: await response.json(),
     });

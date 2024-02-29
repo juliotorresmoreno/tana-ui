@@ -5,7 +5,7 @@ export function useInput(initialValue = "") {
   const [error, setError] = useState<Error | null>(null);
 
   const handleChange: React.ChangeEventHandler<
-    HTMLInputElement | HTMLTextAreaElement
+    HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
   > = (event) => {
     setValue(event.target.value);
   };

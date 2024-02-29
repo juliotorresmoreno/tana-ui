@@ -3,9 +3,9 @@ import { Input } from "../Input";
 import { TextArea } from "../Textarea";
 import { useEffect, useState } from "react";
 import { getProfile, updateProfile } from "@/services/profile";
-import { Profile } from "@/types/models";
+import { Profile, Response } from "@/types/models";
 import { useInput } from "@/hooks/useInput";
-import toast, { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from "react-hot-toast";
 
 const RenderError = (error: Error | null) =>
   error ? (
@@ -50,10 +50,11 @@ export function ProfileForm() {
       position_name: positionName.value,
       url: url.value,
       description: description.value,
-    }).then(async (response) => {
-      const data = await response.json();
-      toast(data.message);
     })
+      .then(async (response) => {
+        const data: Response = await response.json();
+        toast(data.message);
+      })
       .catch((errors) => {
         const cause = errors.cause ?? {};
         if (cause.name) name.setError(new Error(cause.name));
@@ -62,7 +63,8 @@ export function ProfileForm() {
         if (cause.position_name)
           positionName.setError(new Error(cause.position_name));
         if (cause.url) url.setError(new Error(cause.url));
-        if (cause.description) description.setError(new Error(cause.description));
+        if (cause.description)
+          description.setError(new Error(cause.description));
       });
   };
 
@@ -82,7 +84,6 @@ export function ProfileForm() {
           <div className="w-full">
             <h2 className="mb-4 text-xl font-bold text-gray-900">Profile</h2>
             <form onSubmit={handleSubmit}>
-
               <Toaster />
 
               <div className="grid gap-4 sm:grid-cols-2 sm:gap-6">

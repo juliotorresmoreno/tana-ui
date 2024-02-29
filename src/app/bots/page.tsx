@@ -3,18 +3,163 @@
 import { AppLayout } from "@/components/AppLayout";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
-import { Button } from "flowbite-react";
-import { Suspense } from "react";
+import { TextArea } from "@/components/Textarea";
+import { createMmlu, getMmlu, updateMmlu } from "@/services/mmlu";
+import { Mmlu } from "@/types/models";
+import { Button, Label, Modal } from "flowbite-react";
+import { Suspense, useEffect, useState } from "react";
+import { RiDeleteBin2Fill } from "react-icons/ri";
+import { FaEdit } from "react-icons/fa";
+import { Select } from "@/components/Select";
+import { useInput } from "@/hooks/useInput";
 
 export default function Page() {
+  const nameInput = useInput("");
+  const providerInput = useInput("");
+  const modelInput = useInput("");
+  const photoURLInput = useInput("");
+  const descriptionInput = useInput("");
+  const [mmlu, setMmlu] = useState<Mmlu | null>(null);
+  const [mmlus, setMmlus] = useState<Mmlu[]>([]);
+  const [open, setOpen] = useState<boolean>(false);
+  const toggle = () => setOpen(!open);
+
+  async function getData() {
+    const response = await getMmlu();
+    const data: Mmlu[] = await response.json();
+    setMmlus(data);
+  }
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  const handleAdd = () => {
+    nameInput.clear();
+    providerInput.setValue("ollama");
+    modelInput.clear();
+    photoURLInput.clear();
+    descriptionInput.clear();
+    setMmlu(null);
+    toggle();
+  };
+
+  const handleEdit = (mmlu: Mmlu) => {
+    nameInput.setValue(mmlu.name);
+    providerInput.setValue(mmlu.provider);
+    modelInput.setValue(mmlu.model);
+    photoURLInput.setValue(mmlu.photo_url);
+    descriptionInput.setValue(mmlu.description);
+    setMmlu(mmlu);
+    toggle();
+  };
+
+  const handleSave = () => {
+    const data = {
+      name: nameInput.value,
+      provider: providerInput.value,
+      model: modelInput.value,
+      photo_url: photoURLInput.value,
+      description: descriptionInput.value,
+    };
+    if (mmlu) {
+      updateMmlu(mmlu.id, data);
+    } else {
+      createMmlu(data);
+    }
+    toggle();
+  };
+
   return (
     <Suspense fallback={<Loading />}>
+      <Modal show={open} onClose={toggle}>
+        <Modal.Header>Mmlu</Modal.Header>
+        <Modal.Body>
+          <form className="flex w-full flex-col gap-4">
+            <div>
+              <div className="mb-2 block">
+                <Label value="Name" />
+              </div>
+              <Input
+                type="text"
+                autoComplete="off"
+                required
+                value={nameInput.value}
+                onChange={nameInput.handleChange}
+              />
+            </div>
+            <div className="flex w-full gap-4">
+              <div className="w-[200px]">
+                <div className="mb-2 block">
+                  <Label value="Provider" />
+                </div>
+                <Select
+                  className="rounded-none"
+                  value={providerInput.value}
+                  onChange={providerInput.handleChange}
+                >
+                  <option value="ollama">Ollama</option>
+                </Select>
+              </div>
+
+              <div className="flex-1">
+                <div className="mb-2 block">
+                  <Label value="Model" />
+                </div>
+                <Input
+                  type="text"
+                  autoComplete="off"
+                  required
+                  value={modelInput.value}
+                  onChange={modelInput.handleChange}
+                />
+              </div>
+            </div>
+            <div>
+              <div className="mb-2 block">
+                <Label value="PhotoURL" />
+              </div>
+              <Input
+                type="url"
+                autoComplete="off"
+                required
+                value={photoURLInput.value}
+                onChange={photoURLInput.handleChange}
+              />
+            </div>
+            <div>
+              <div className="mb-2 block">
+                <Label value="Description" />
+              </div>
+              <TextArea
+                rows={5}
+                autoComplete="off"
+                required
+                value={descriptionInput.value}
+                onChange={descriptionInput.handleChange}
+              />
+            </div>
+          </form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button className="rounded-none w-[100px]" onClick={handleSave}>
+            Save
+          </Button>
+          <Button
+            className="rounded-none w-[100px]"
+            color="gray"
+            onClick={toggle}
+          >
+            Decline
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       <main className="flex">
         <AppLayout connections={null}>
           <div className="flex flex-1 flex-col gap-2">
             <section className="bg-gray-50 p-3 sm:p-5 flex flex-1">
               <div className="mx-auto max-w-screen-xl px-4 lg:px-12 flex flex-1">
-                {/* Start coding here */}
                 <div className="bg-white relative shadow-md overflow-hidden flex-1">
                   <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
                     <div className="w-full md:w-1/2">
@@ -48,7 +193,11 @@ export default function Page() {
                       </form>
                     </div>
                     <div className="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
-                      <Button type="button" className="rounded-none w-[150px]">
+                      <Button
+                        type="button"
+                        className="rounded-none w-[150px]"
+                        onClick={handleAdd}
+                      >
                         <svg
                           className="h-3.5 w-3.5 mr-2"
                           fill="currentColor"
@@ -73,18 +222,42 @@ export default function Page() {
                           <th scope="col" className="px-4 py-3 flex-1">
                             Name
                           </th>
-                          <th scope="col" className="px-4 py-3 w-[200px]">
+                          <th scope="col" className="px-4 py-3 w-[300px]">
                             Model
                           </th>
-                          <th scope="col" className="px-4 py-3 w-[200px]">
+                          <th scope="col" className="px-4 py-3 w-[300px]">
                             Created At
                           </th>
-                          <th scope="col" className="px-4 py-3">
+                          <th scope="col" className="px-4 py-3  w-[60px]">
                             <span className="sr-only">Actions</span>
                           </th>
                         </tr>
                       </thead>
-                      <tbody></tbody>
+                      <tbody>
+                        {mmlus.map((mmlu) => (
+                          <tr key={mmlu.id} className="flex">
+                            <td className="px-4 py-1 flex-1">{mmlu.name}</td>
+                            <td className="px-4 py-1 w-[300px]">
+                              {mmlu.model}
+                            </td>
+                            <td className="px-4 py-1 w-[300px]">
+                              {mmlu.creation_at}
+                            </td>
+
+                            <td className="px-4 py-1 w-[60px] flex flex-row justify-end gap-2">
+                              <span
+                                className="text-primary-500 cursor-pointer text-xl"
+                                onClick={() => handleEdit(mmlu)}
+                              >
+                                <FaEdit />
+                              </span>
+                              <span className="text-red-700 cursor-pointer text-xl">
+                                <RiDeleteBin2Fill />
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
                     </table>
                   </div>
                 </div>

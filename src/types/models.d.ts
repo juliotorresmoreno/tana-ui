@@ -38,8 +38,24 @@ interface Credential {
   id: number;
   api_key: string;
   api_secret: string;
+  last_used: string | null;
   creation_at: string;
   deleted_at: string | null;
-  last_used: string | null;
   updated_at: string;
 }
+
+export interface Mmlu {
+  id: number;
+  name: string;
+  photo_url: string;
+  description: string;
+  provider: string;
+  model: string;
+  creation_at: string;
+  updated_at: string;
+  deleted_at: string;
+}
+
+type Response = {
+  message: string;
+};
