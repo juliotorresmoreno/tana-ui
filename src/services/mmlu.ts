@@ -1,7 +1,7 @@
 import { FetchError } from "@/common/errors";
 import { getConfig } from "@/config";
 
-export async function getMmlu(): Promise<Response> {
+export async function getMmlus(): Promise<Response> {
   const config = getConfig();
 
   const response = await fetch(`${config.apiUrl}/mmlu`, {

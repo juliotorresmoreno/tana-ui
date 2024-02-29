@@ -4,14 +4,16 @@ import { AppLayout } from "@/components/AppLayout";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { TextArea } from "@/components/Textarea";
-import { createMmlu, getMmlu, updateMmlu } from "@/services/mmlu";
-import { Mmlu } from "@/types/models";
+import { createMmlu, getMmlus, updateMmlu } from "@/services/mmlu";
+import { Mmlu, Model, Response } from "@/types/models";
 import { Button, Label, Modal } from "flowbite-react";
 import { Suspense, useEffect, useState } from "react";
 import { RiDeleteBin2Fill } from "react-icons/ri";
 import { FaEdit } from "react-icons/fa";
 import { Select } from "@/components/Select";
 import { useInput } from "@/hooks/useInput";
+import toast, { Toaster } from "react-hot-toast";
+import { getModels } from "@/services/models";
 
 export default function Page() {
   const nameInput = useInput("");
@@ -21,17 +23,25 @@ export default function Page() {
   const descriptionInput = useInput("");
   const [mmlu, setMmlu] = useState<Mmlu | null>(null);
   const [mmlus, setMmlus] = useState<Mmlu[]>([]);
+  const [models, setModels] = useState<Model[]>([]);
   const [open, setOpen] = useState<boolean>(false);
   const toggle = () => setOpen(!open);
 
   async function getData() {
-    const response = await getMmlu();
+    const response = await getMmlus();
     const data: Mmlu[] = await response.json();
     setMmlus(data);
   }
 
+  async function _getModels() {
+    const response = await getModels();
+    const data: Model[] = await response.json();
+    setModels(data);
+  }
+
   useEffect(() => {
     getData();
+    _getModels();
   }, []);
 
   const handleAdd = () => {
@@ -54,24 +64,33 @@ export default function Page() {
     toggle();
   };
 
-  const handleSave = () => {
-    const data = {
+  const handleSave = async () => {
+    const payload = {
       name: nameInput.value,
       provider: providerInput.value,
       model: modelInput.value,
       photo_url: photoURLInput.value,
       description: descriptionInput.value,
     };
-    if (mmlu) {
-      updateMmlu(mmlu.id, data);
-    } else {
-      createMmlu(data);
-    }
-    toggle();
+    try {
+      if (mmlu) {
+        const response = await updateMmlu(mmlu.id, payload);
+        const data: Response = await response.json();
+        toast(data.message);
+      } else {
+        const response = await createMmlu(payload);
+        const data: Response = await response.json();
+        toast(data.message);
+      }
+      getData();
+      toggle();
+    } catch (error) {}
   };
 
   return (
     <Suspense fallback={<Loading />}>
+      <Toaster />
+
       <Modal show={open} onClose={toggle}>
         <Modal.Header>Mmlu</Modal.Header>
         <Modal.Body>
@@ -112,7 +131,15 @@ export default function Page() {
                   required
                   value={modelInput.value}
                   onChange={modelInput.handleChange}
+                  list="models"
                 />
+                <datalist id="models">
+                  {models
+                    .filter((model) => providerInput.value === model.provider)
+                    .map((model) => (
+                      <option key={model.code} value={model.code} />
+                    ))}
+                </datalist>
               </div>
             </div>
             <div>

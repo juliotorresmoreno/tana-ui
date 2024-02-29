@@ -56,6 +56,11 @@ export interface Mmlu {
   deleted_at: string;
 }
 
+export interface Model {
+  code: string;
+  provider: string;
+}
+
 type Response = {
   message: string;
 };
