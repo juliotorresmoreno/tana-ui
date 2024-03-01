@@ -4,7 +4,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Input } from "@/components/Input";
 import { Loading } from "@/components/Loading";
 import { TextArea } from "@/components/Textarea";
-import { createMmlu, getMmlus, updateMmlu } from "@/services/mmlu";
+import { createMmlu, deleteMmlu, getMmlus, updateMmlu } from "@/services/mmlu";
 import { Mmlu, Model, Response } from "@/types/models";
 import { Button, Label, Modal } from "flowbite-react";
 import { Suspense, useEffect, useState } from "react";
@@ -26,6 +26,9 @@ export default function Page() {
   const [models, setModels] = useState<Model[]>([]);
   const [open, setOpen] = useState<boolean>(false);
   const toggle = () => setOpen(!open);
+  const [openModalForDelete, setOpenModalForDelete] = useState<Mmlu | null>(
+    null
+  );
 
   async function getData() {
     const response = await getMmlus();
@@ -33,15 +36,13 @@ export default function Page() {
     setMmlus(data);
   }
 
-  async function _getModels() {
-    const response = await getModels();
-    const data: Model[] = await response.json();
-    setModels(data);
-  }
-
   useEffect(() => {
+    (async function () {
+      const response = await getModels();
+      const data: Model[] = await response.json();
+      setModels(data);
+    })();
     getData();
-    _getModels();
   }, []);
 
   const handleAdd = () => {
@@ -87,9 +88,38 @@ export default function Page() {
     } catch (error) {}
   };
 
+  const handleDelete = () => {
+    deleteMmlu(openModalForDelete?.id ?? 0).then(async (response) => {
+      const data: Response = await response.json();
+      toast(data.message);
+      setOpenModalForDelete(null);
+      getData();
+    });
+  };
+
   return (
     <Suspense fallback={<Loading />}>
       <Toaster />
+
+      <Modal
+        show={openModalForDelete !== null}
+        onClose={() => setOpenModalForDelete(null)}
+      >
+        <Modal.Header>Delete credential</Modal.Header>
+        <Modal.Body>
+          Do you really want to delete this model?
+          <div className="w-full">
+            <span>{openModalForDelete?.name}</span>
+          </div>
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button onClick={handleDelete}>I accept</Button>
+          <Button color="gray" onClick={() => setOpenModalForDelete(null)}>
+            Decline
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       <Modal show={open} onClose={toggle}>
         <Modal.Header>Mmlu</Modal.Header>
@@ -278,7 +308,10 @@ export default function Page() {
                               >
                                 <FaEdit />
                               </span>
-                              <span className="text-red-700 cursor-pointer text-xl">
+                              <span
+                                className="text-red-700 cursor-pointer text-xl"
+                                onClick={() => setOpenModalForDelete(mmlu)}
+                              >
                                 <RiDeleteBin2Fill />
                               </span>
                             </td>
