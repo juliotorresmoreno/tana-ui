@@ -4,7 +4,7 @@ import { getConfig } from "@/config";
 export async function getConnections() {
   const config = getConfig();
 
-  const response = await fetch(`${config.apiUrl}/connections`, {
+  const response = await fetch(`${config.apiUrl}/mmlu`, {
     method: "GET",
     headers: {
       "content-type": "application/json",

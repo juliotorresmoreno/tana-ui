@@ -1,4 +1,4 @@
-import { InputHTMLAttributes } from "react";
+import { InputHTMLAttributes, LegacyRef } from "react";
 
 interface HTMLInputProps extends InputHTMLAttributes<HTMLInputElement> {}
 
@@ -8,11 +8,5 @@ const classNames =
 type InputProps = HTMLInputProps;
 
 export function Input({ className, ...props }: InputProps) {
-  return (
-    <input
-      {...props}
-      //className="focus:border-green-500"
-      className={[classNames, className].join(" ")}
-    ></input>
-  );
+  return <input {...props} className={[classNames, className].join(" ")} />;
 }

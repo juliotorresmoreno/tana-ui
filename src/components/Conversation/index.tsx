@@ -2,47 +2,76 @@
 
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { ConversationContext } from "@/contexts/conversation";
-import { Button } from "flowbite-react";
+import { Button, Modal } from "flowbite-react";
 import { BsSend } from "react-icons/bs";
 import { CgAttachment } from "react-icons/cg";
 import { SessionContext } from "@/contexts/session";
-import * as conversation from "@/services/conversation";
-import { Utf8ArrayToStr } from "@/lib/utf8";
+import * as mmlu from "@/services/mmlu";
 import { getConfig } from "@/config";
-import { Message } from "@/types/models";
+import { Message, Response } from "@/types/models";
 import { Input } from "../Input";
+import { RiDeleteBin2Fill } from "react-icons/ri";
+import { Toaster, toast } from "react-hot-toast";
 import "./styles.css";
 
 interface ChatProps extends Message {}
 
-const Chat = ({ id, content, rol }: ChatProps) => {
+const Chat = ({
+  getData,
+  ...message
+}: ChatProps & { getData: () => Promise<void> }) => {
+  const [openModalForDelete, setOpenModalForDelete] = useState(false);
+
+  const handleDelete = async () => {
+    if (openModalForDelete === null) return;
+    const response = await mmlu.deleteMessage(message.mmlu.id, message.id);
+    const data: Response = await response.json();
+    toast.success(data.message);
+    setOpenModalForDelete(false);
+    getData();
+  };
+
   return (
-    <div key={id} className="flex flex-col gap-2 mt-2">
-      {rol === "human" && (
-        <div className="flex flex-col bg-green-100 gap-2 p-2">
-          <div className="text-lg flex-col font-bold wh-normal m-0 p-0">
-            {rol}:
+    <>
+      <Toaster />
+      <Modal
+        show={openModalForDelete}
+        onClose={() => setOpenModalForDelete(false)}
+      >
+        <Modal.Header>Delete message</Modal.Header>
+        <Modal.Body>
+          Do you really want to delete this message?
+          <div className="w-full">
+            <span>{message.content.substring(0, 100) + " ..."}</span>
           </div>
-          <pre className="flex-1">{content}</pre>
-        </div>
-      )}
-      {rol === "ai" && (
-        <div className="flex flex-col bg-blue-100 gap-1 p-2">
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button onClick={handleDelete}>I accept</Button>
+          <Button color="gray" onClick={() => setOpenModalForDelete(false)}>
+            Decline
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <div className="flex flex-row gap-2 mt-2">
+        <div className="flex flex-1 flex-col  gap-1 p-2">
           <div className="text-lg flex-col font-bold wh-normal m-0 p-0">
-            {rol}:
+            {message.role}:
           </div>
-          <pre className="flex-1 comments">{content}</pre>
+          <pre className="flex-1 comments">{message.content}</pre>
         </div>
-      )}
-      {rol === "system" && (
-        <div className="flex flex-col bg-purple-200 gap-1 p-2">
-          <div className="text-lg flex-col font-bold wh-normal m-0 p-0">
-            {rol}:
-          </div>
-          <pre className="flex-1 comments">{content}</pre>
+        <div className="p-2 pr-4">
+          <span
+            className="text-red-700 cursor-pointer text-xl"
+            onClick={() => setOpenModalForDelete(true)}
+          >
+            <RiDeleteBin2Fill />
+          </span>
         </div>
-      )}
-    </div>
+      </div>
+      <hr />
+    </>
   );
 };
 
@@ -54,22 +83,17 @@ export function Conversation(props: ConversationProps) {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { current, history, setHistory } = useContext(ConversationContext);
-  const answerRef = useRef<HTMLPreElement>(null);
-  const responseRef = useRef<HTMLPreElement>(null);
-  const windowRef = useRef<HTMLDivElement>(null);
   const conversationRef = useRef<HTMLDivElement>(null);
   const apiUrl = useMemo(() => config.apiUrl, [config]);
-  let answer: string = "";
-  let chunks: string = "";
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function getData() {
+    if (!current || current?.id === 0) return;
+    const data = await (await mmlu.getMessages(current.id)).json();
+    setHistory(data);
+  }
 
   useEffect(() => {
-    async function getData() {
-      if (!current || current?.id === 0) return;
-      const data = await (
-        await conversation.getConversation(current.id)
-      ).json();
-      setHistory(data);
-    }
     getData();
   }, [session, current?.id]);
 
@@ -78,7 +102,7 @@ export function Conversation(props: ConversationProps) {
       withCredentials: true,
     });
     function getRealtimeData(data: Message) {
-      if (data.connection_id !== current?.id) return;
+      if (data.mmlu.id !== current?.id) return;
 
       setHistory((history) => [...history, data]);
     }
@@ -98,50 +122,16 @@ export function Conversation(props: ConversationProps) {
     try {
       if (!current) return;
       setIsLoading(true);
-
-      answer = message;
       setMessage("");
 
-      const data = {
+      await mmlu.sendMessage({
         bot_id: current.id,
-        prompt: message,
-      };
-
-      if (answerRef.current) answerRef.current.textContent = answer;
-      if (windowRef.current) {
-        windowRef.current?.classList.remove("hidden");
-        windowRef.current.style.width = windowRef.current.clientWidth + "px";
-      }
-      if (conversationRef.current)
-        conversationRef.current.scrollTop =
-          conversationRef.current.scrollHeight;
-
-      const response = await conversation.sendMessage(data);
-      const reader = (response.body as ReadableStream<Uint8Array>).getReader();
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done || !value) {
-          break;
-        }
-
-        const data = Utf8ArrayToStr(value);
-
-        chunks = chunks + data;
-        if (responseRef.current) {
-          responseRef.current.innerHTML = chunks.trim();
-        }
-        if (conversationRef.current)
-          conversationRef.current.scrollTop =
-            conversationRef.current.scrollHeight;
-      }
-      if (responseRef.current) responseRef.current.innerHTML = "";
-      if (windowRef.current) {
-        windowRef.current?.classList.add("hidden");
-        windowRef.current.style.width = "";
-      }
-
-      chunks = "";
-      answer = "";
+        content: message,
+      });
+      await getData();
+      window.requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
     } finally {
       setIsLoading(false);
     }
@@ -168,7 +158,7 @@ export function Conversation(props: ConversationProps) {
 
         if (current?.id === undefined) return;
 
-        await conversation.attach({
+        await mmlu.attach({
           bot_id: current.id,
           attachment: content,
         });
@@ -189,21 +179,9 @@ export function Conversation(props: ConversationProps) {
         className="flex flex-1 flex-col overflow-x-hidden"
       >
         <div>
-          {history.map((item) => Chat(item))}
-
-          <div ref={windowRef} className={"flex flex-col gap-2 mt-2 hidden"}>
-            <div className="flex flex-col bg-green-100 gap-2 p-2">
-              <span className="text-lg font-bold">human:</span>
-              <pre className="flex-1" ref={answerRef}>
-                {answer}
-              </pre>
-            </div>
-
-            <div className="flex flex-col bg-blue-100 gap-1 p-2">
-              <span className="text-lg font-bold">ai:</span>
-              <pre className="flex-1 comments" ref={responseRef}></pre>
-            </div>
-          </div>
+          {history.map((item) => (
+            <Chat key={item.id} {...item} getData={getData} />
+          ))}
         </div>
       </div>
       <div className="flex flex-row gap-2">

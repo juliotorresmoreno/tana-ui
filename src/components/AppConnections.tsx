@@ -8,14 +8,15 @@ import classNames from "classnames";
 import { BsPersonCircle } from "react-icons/bs";
 import { ConnectionsContext } from "@/contexts/connections";
 import { useRouter } from "next/navigation";
+import { useConnections } from "@/hooks/useConnections";
 
 interface AppConnectionsProps {}
 
 export function AppConnections(props: AppConnectionsProps) {
   const [filter, setFilter] = useState("");
-  const { connections, isLoaded } = useContext(ConnectionsContext);
   const menuContext = useContext(MenuContext);
   const conversationContext = useContext(ConversationContext);
+  const { connections, isLoaded } = useConnections();
   const router = useRouter();
   if (!menuContext.isOpen) return null;
 
@@ -75,14 +76,10 @@ export function AppConnections(props: AppConnectionsProps) {
                       )}
                     </div>
                     <div className="flex-1 min-w-0 ms-4">
-                      <p
-                        className={`${active} text-sm text-gray-900 truncate`}
-                      >
+                      <p className={`${active} text-sm text-gray-900 truncate`}>
                         {item.name}
                       </p>
-                      <p
-                        className={`${active} text-sm text-gray-900 truncate`}
-                      >
+                      <p className={`${active} text-sm text-gray-900 truncate`}>
                         {item.description}
                       </p>
                     </div>

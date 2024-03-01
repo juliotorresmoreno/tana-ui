@@ -7,11 +7,7 @@ import { SessionContext } from "@/contexts/session";
 import { useSession } from "@/hooks/useSession";
 import { PropsWithChildren, ReactNode } from "react";
 
-const providers = [
-  ConnectionsContextProvider,
-  ConversationContextProvider,
-  MenuContextProvider,
-];
+const providers = [ConversationContextProvider, MenuContextProvider];
 
 type Component =
   | React.FC<React.PropsWithChildren>

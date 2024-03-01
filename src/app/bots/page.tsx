@@ -77,11 +77,11 @@ export default function Page() {
       if (mmlu) {
         const response = await updateMmlu(mmlu.id, payload);
         const data: Response = await response.json();
-        toast(data.message);
+        toast.success(data.message);
       } else {
         const response = await createMmlu(payload);
         const data: Response = await response.json();
-        toast(data.message);
+        toast.success(data.message);
       }
       getData();
       toggle();
@@ -91,7 +91,7 @@ export default function Page() {
   const handleDelete = () => {
     deleteMmlu(openModalForDelete?.id ?? 0).then(async (response) => {
       const data: Response = await response.json();
-      toast(data.message);
+      toast.success(data.message);
       setOpenModalForDelete(null);
       getData();
     });
@@ -105,7 +105,7 @@ export default function Page() {
         show={openModalForDelete !== null}
         onClose={() => setOpenModalForDelete(null)}
       >
-        <Modal.Header>Delete credential</Modal.Header>
+        <Modal.Header>Delete mmlu</Modal.Header>
         <Modal.Body>
           Do you really want to delete this model?
           <div className="w-full">

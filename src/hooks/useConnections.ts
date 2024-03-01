@@ -7,23 +7,23 @@ export function useConnections() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function getPeople() {
-      try {
-        const response = await getConnections();
-        if (!response.ok) {
-          throw new Error("Error fetching connections");
-        }
-
-        const connectionsData: Connection[] = await response.json();
-        setConnections(connectionsData);
-        setIsLoaded(true);
-      } catch (error: any) {
-        setError(error.message || "An error occurred");
+  async function getData() {
+    try {
+      const response = await getConnections();
+      if (!response.ok) {
+        throw new Error("Error fetching connections");
       }
-    }
 
-    getPeople();
+      const connectionsData: Connection[] = await response.json();
+      setConnections(connectionsData);
+      setIsLoaded(true);
+    } catch (error: any) {
+      setError(error.message || "An error occurred");
+    }
+  }
+
+  useEffect(() => {
+    getData();
   }, []);
 
   return { connections, isLoaded, error };

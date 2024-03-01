@@ -53,7 +53,7 @@ export function ProfileForm() {
     })
       .then(async (response) => {
         const data: Response = await response.json();
-        toast(data.message);
+        toast.success(data.message);
       })
       .catch((errors) => {
         const cause = errors.cause ?? {};

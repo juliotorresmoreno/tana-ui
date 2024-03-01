@@ -9,14 +9,6 @@ export interface User {
 
 export interface Session extends User {}
 
-export interface Message {
-  id: string;
-  content: string;
-  rol: string;
-  connection_id: number;
-  created_at: string;
-}
-
 export interface Profile {
   id: number;
   name: string;
@@ -54,6 +46,15 @@ export interface Mmlu {
   creation_at: string;
   updated_at: string;
   deleted_at: string;
+}
+
+interface Message {
+  id: number;
+  content: string;
+  mmlu: Mmlu;
+  role: string;
+  creationAt: string;
+  updatedAt: string;
 }
 
 export interface Model {

@@ -33,7 +33,7 @@ export default function Page() {
   const handleGenerate = () => {
     generateCredential().then(async (response) => {
       const data: Response = await response.json();
-      toast(data.message);
+      toast.success(data.message);
 
       getData();
     });
@@ -42,7 +42,7 @@ export default function Page() {
   const handleDelete = () => {
     deleteCredential(openModalForDelete?.id ?? 0).then(async (response) => {
       const data: Response = await response.json();
-      toast(data.message);
+      toast.success(data.message);
       setOpenModalForDelete(null);
       getData();
     });
